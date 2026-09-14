@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #030508;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
+/* Shiny Black & Bubble Green Theme Utilities */
+.bg-shiny-black {
+  background: radial-gradient(120% 120% at 50% 0%, #0c1017 0%, #05070a 45%, #010204 100%);
+}
+
+.card-shiny-black {
+  background: linear-gradient(180deg, rgba(18, 24, 34, 0.75) 0%, rgba(8, 11, 16, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.75), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.btn-bubble-green {
+  background: linear-gradient(180deg, #1af77b 0%, #0ee46a 100%);
+  color: #030704;
+  font-weight: 800;
+  box-shadow: 0 4px 20px 0 rgba(16, 240, 114, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.6);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-bubble-green:hover {
+  background: linear-gradient(180deg, #38ff91 0%, #16f576 100%);
+  box-shadow: 0 6px 28px 0 rgba(22, 245, 118, 0.7), inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px) scale(1.02);
+}
+
+.btn-bubble-green:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 10px 0 rgba(16, 240, 114, 0.3);
+}
+
+.text-bubble-green {
+  color: #12f573;
+}
+
+.border-bubble-green {
+  border-color: rgba(18, 245, 115, 0.4);
+}
+
+.glow-bubble-green {
+  box-shadow: 0 0 25px rgba(18, 245, 115, 0.3);
+}

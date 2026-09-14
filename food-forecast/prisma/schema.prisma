@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  STAFF
+  ADMIN
+}
+
+enum MealType {
+  Breakfast
+  Lunch
+  Snacks
+  Dinner
+}
+
+enum MealStatus {
+  SCHEDULED
+  PREPARING
+  SERVED
+  COMPLETED
+  CANCELLED
+}
+
+enum ConsumptionStatus {
+  SAFE
+  BUFFER_USED
+  SHORTAGE_RISK
+}
+
+enum WasteCategory {
+  PREPARATION_SCRAPS
+  LEFTOVER_SURPLUS
+  PLATE_WASTE
+  SPOILED_STORAGE
+}
+
+enum DisposalMethod {
+  DONATION
+  BIOGAS_CONVERSION
+  COMPOSTING
+  MUNICIPAL_DISPOSAL
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password_hash String
+  name          String
+  role          Role           @default(STUDENT)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+
+  consumptions  Consumption[]
+  waste_records WasteRecord[]
+  feedback      Feedback[]
+  queries       QueryHistory[]
+  intentions    StudentIntention[]
+
+  @@map("users")
+}
+
+model Meal {
+  id          Int            @id @default(autoincrement())
+  date        String         // YYYY-MM-DD
+  meal_type   MealType
+  menu        String
+  price       Float          @default(50.0)
+  status      MealStatus     @default(SCHEDULED)
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
+
+  predictions  MealPrediction[]
+  consumption  Consumption?
+  waste_records WasteRecord[]
+  feedback     Feedback[]
+  intentions   StudentIntention[]
+  impact       ImpactRecord?
+
+  @@unique([date, meal_type])
+  @@map("meals")
+}
+
+model MealPrediction {
+  id                          Int      @id @default(autoincrement())
+  meal_id                     Int      @unique
+  predicted_demand            Int
+  confidence_score            Float    @default(0.95)
+  recommended_buffer_percent  Float    @default(5.0)
+  buffer_amount               Int      @default(20)
+  recommended_preparation     Int      @default(420)
+  calculation_factors         String?  // JSON string of factor weights
+  created_at                  DateTime @default(now())
+
+  meal                        Meal     @relation(fields: [meal_id], references: [id], onDelete: Cascade)
+
+  @@map("meal_predictions")
+}
+
+model Consumption {
+  id                  Int               @id @default(autoincrement())
+  meal_id             Int               @unique
+  actual_cooked       Int
+  actual_consumption  Int
+  leftover_amount     Int               @default(0)
+  shortage_amount     Int               @default(0)
+  buffer_used_amount  Int               @default(0)
+  status              ConsumptionStatus @default(SAFE)
+  logged_by_id        Int?
+  logged_at           DateTime          @default(now())
+
+  meal                Meal              @relation(fields: [meal_id], references: [id], onDelete: Cascade)
+  logged_by           User?             @relation(fields: [logged_by_id], references: [id], onDelete: SetNull)
+
+  @@map("consumption")
+}
+
+model WasteRecord {
+  id              Int            @id @default(autoincrement())
+  meal_id         Int
+  waste_kg        Float
+  waste_category  WasteCategory  @default(LEFTOVER_SURPLUS)
+  disposal_method DisposalMethod @default(COMPOSTING)
+  cost_loss       Float          @default(0.0)
+  notes           String?
+  logged_by_id    Int?
+  logged_at       DateTime       @default(now())
+
+  meal            Meal           @relation(fields: [meal_id], references: [id], onDelete: Cascade)
+  logged_by       User?          @relation(fields: [logged_by_id], references: [id], onDelete: SetNull)
+
+  @@map("waste_records")
+}
+
+model BufferConfiguration {
+  id                  Int      @id @default(autoincrement())
+  meal_type           MealType @unique
+  base_buffer_percent Float    @default(5.0)
+  min_buffer_percent  Float    @default(3.0)
+  max_buffer_percent  Float    @default(15.0)
+  auto_adjust_enabled Boolean  @default(true)
+  updated_at          DateTime @updatedAt
+
+  @@map("buffer_configurations")
+}
+
+model Feedback {
+  id               Int      @id @default(autoincrement())
+  meal_id          Int
+  user_id          Int
+  rating           Int      @default(5)
+  taste_rating     Int      @default(5)
+  portion_rating   Int      @default(4)
+  comments         String?
+  would_eat_again  Boolean  @default(true)
+  created_at       DateTime @default(now())
+
+  meal             Meal     @relation(fields: [meal_id], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("feedback")
+}
+
+model QueryHistory {
+  id         Int      @id @default(autoincrement())
+  user_id    Int?
+  query      String
+  answer     String
+  source     String   @default("LOCAL_ANALYTICS")
+  created_at DateTime @default(now())
+
+  user       User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@map("query_history")
+}
+
+model ImpactRecord {
+  id                  Int      @id @default(autoincrement())
+  meal_id             Int      @unique
+  food_saved_kg       Float    @default(0.0)
+  cost_saved_inr      Float    @default(0.0)
+  co2_avoided_kg      Float    @default(0.0)
+  water_saved_litres  Float    @default(0.0)
+  created_at          DateTime @default(now())
+
+  meal                Meal     @relation(fields: [meal_id], references: [id], onDelete: Cascade)
+
+  @@map("impact_records")
+}
+
+model StudentIntention {
+  id         Int      @id @default(autoincrement())
+  meal_id    Int
+  user_id    Int
+  attending  Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  meal       Meal     @relation(fields: [meal_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([meal_id, user_id])
+  @@map("student_intentions")
+}

@@ -1,0 +1,7 @@
+{
+  "name": "FOOD FORECAST",
+  "description": "Intelligent food-waste prevention and meal-demand management platform with dynamic safety buffers, predictive analytics, and real-time sustainability tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
